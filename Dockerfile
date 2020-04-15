@@ -1,6 +1,9 @@
 FROM steamcmd/steamcmd:ubuntu
 
+# work-around due to wine issue
 ENV DBUS_FATAL_WARNINGS=0
+ARG app_user=steam
+
 RUN apt-get update && \
     apt-get -y install software-properties-common curl && \
     curl -L https://dl.winehq.org/wine-builds/winehq.key | apt-key add - && \
@@ -10,10 +13,25 @@ RUN apt-get update && \
     apt-get install winehq-stable --no-install-recommends -y && \
     curl -o /usr/bin/winetricks https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks && \
     chmod +x /usr/bin/winetricks && \
-    winetricks -q dotnet48 && \
-    steamcmd +login anonymous +force_install_dir /root/.wine/drive_c/users/root/SpaceEngeineersDedicatedServer +app_update 298740 +quit && \
+    useradd -m -d /home/$app_user $app_user && \
     mkdir -p /data /data/config /data/world && \
-    mkdir -p .wine/drive_c/users/root/Application\ Data/SpaceEngineersDedicated
+    chown -R $app_user /data
+    
 
-WORKDIR "/root/.wine/drive_c/users/root/SpaceEngeineersDedicatedServer/DedicatedServer64/"
-ENTRYPOINT = ["wine", "SpaceEngineersDedicated.exe", "-console"]
+USER $app_user
+WORKDIR /home/$app_user
+ENV HOME=/home/$app_user
+ENV USER=$app_user
+
+RUN wineboot -u && \
+    winetricks -q dotnet48
+
+RUN steamcmd +login anonymous +force_install_dir $HOME/.wine/drive_c/users/$app_user/SpaceEngeineersDedicatedServer +app_update 298740 +quit && \
+    mkdir -p $HOME/.wine/drive_c/users/$app_user/Application\ Data/SpaceEngineersDedicated && \
+    ln -s /data/config/SpaceEngineers-Dedicated.cfg $HOME/.wine/drive_c/users/$app_user/Application\ Data/SpaceEngineersDedicated/SpaceEngineers-Dedicated.cfg 
+
+EXPOSE 27016/udp
+VOLUME ["/data/config", "/data/world"]
+ADD start-spceng-server /usr/bin/start-spceng-server
+ENTRYPOINT ["/usr/bin/start-spceng-server"]
+CMD ["-console"]
