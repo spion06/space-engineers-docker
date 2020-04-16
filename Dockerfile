@@ -2,6 +2,7 @@ FROM steamcmd/steamcmd:ubuntu
 
 # work-around due to wine issue
 ENV DBUS_FATAL_WARNINGS=0
+ENV UPDATE=false
 ARG app_user=steam
 
 RUN apt-get update && \

@@ -1,4 +1,7 @@
 #!/bin/bash
 cd $HOME/.wine/drive_c/users/$USER/SpaceEngeineersDedicatedServer/DedicatedServer64/
-echo hello
-exec /usr/bin/wine SpaceEngineersDedicated.exe "$@"
+if [[ $UPDATE == "true" ]];then
+  # try to update on update on each boot
+  steamcmd +login anonymous +force_install_dir $HOME/.wine/drive_c/users/$USER/SpaceEngeineersDedicatedServer +app_update 298740 +quit
+fi
+exec /usr/bin/wine SpaceEngineersDedicated.exe "$@" 2>/dev/null
