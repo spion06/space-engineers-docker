@@ -1,0 +1,4 @@
+#!/bin/bash
+cd $HOME/.wine/drive_c/users/$USER/SpaceEngeineersDedicatedServer/DedicatedServer64/
+echo hello
+exec /usr/bin/wine SpaceEngineersDedicated.exe "$@"
